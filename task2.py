@@ -1,5 +1,5 @@
 from pathlib import Path
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, Input, Output, callback
 import plotly.express as px
 import pandas as pd
 
@@ -7,6 +7,13 @@ app = Dash()
 
 folder = Path("data")   # e.g., Path("data")
 files = sorted(folder.glob("*.csv"))
+
+PALETTE = {
+    "north": "#1f77b4",
+    "south": "#ff7f0e",
+    "east":  "#2ca02c",
+    "west":  "#d62728",
+}
 
 # Read all and stack vertically
 df = pd.concat(
@@ -52,21 +59,51 @@ def generate_table(dataframe, max_rows=10):
         ])
     ])
 
-fig = px.line(newdf, x="date", y="Sales")
-
 app.layout = html.Div(children=[
     html.H1(children='Sales for Pink Morsel',style={'textAlign': 'center', 'color': '#7FDBFF'}),
 
     html.Div(children='Dash: A web application framework for your data.'),
+    
+    html.Div(
+        [
+            html.Label("Region:", htmlFor="selected-region"),
+            dcc.RadioItems(
+                options=newdf['region'].unique(),
+                value="north",           
+                inline=True,
+                id='selected-region'              
+        )
+        ], style={
+            "display": "flex",
+            "alignItems": "center",
+            "gap": "8px",
+            "whiteSpace": "nowrap",     # keep "Region:" from wrapping
+            "width": "48%",
+        }),
+
 
     dcc.Graph(
-        id='example-graph',
-        figure=fig
+        id='region-sales-graph'
     ),
     
     dcc.Markdown(children = markdown_text)
     
 ])
+
+@callback(
+    Output('region-sales-graph', 'figure'),
+    Input('selected-region', 'value'))
+
+def update_graph(selectedregion):
+    dff = newdf[newdf['region'] == selectedregion]
+
+    fig = px.line(x=dff["date"], y=dff["Sales"])
+    
+    fig.update_traces(line_color=PALETTE.get(selectedregion, "#636EFA"))
+    fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
+    
+
+    return fig
 
 if __name__ == '__main__':
     app.run(debug=True)
