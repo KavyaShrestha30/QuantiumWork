@@ -1,5 +1,5 @@
 from pathlib import Path
-from dash import Dash, html, dcc, Input, Output, callback
+from dash import Dash, html, dcc, Input, Output, callback, ctx
 import plotly.express as px
 import pandas as pd
 
@@ -102,8 +102,14 @@ def update_graph(selectedregion):
     fig.update_traces(line_color=PALETTE.get(selectedregion, "#636EFA"))
     fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
     
-
     return fig
+
+def update(region):
+    return f'Region is {region}.'
+
+def display(region):
+    button_clicked = ctx.triggered_id
+    return f'You last clicked button with ID {button_clicked}'
 
 if __name__ == '__main__':
     app.run(debug=True)
