@@ -12,9 +12,7 @@ df = pd.concat(
 
 df = df[df["product"] == "pink morsel"]
 
-clean_price = (df["price"].str.strip()
-               .str.replace(r"[^\d.\-()]", "", regex=True)
-               .str.replace(r"^\((.*)\)$", r"-\1", regex=True))
+clean_price = df["price"].str[1:]
 
 df["price_num"] = pd.to_numeric(clean_price, errors="coerce")
 
